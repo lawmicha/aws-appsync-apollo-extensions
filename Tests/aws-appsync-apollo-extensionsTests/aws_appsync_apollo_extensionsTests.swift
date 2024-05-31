@@ -1,7 +1,7 @@
 import XCTest
-@testable import AWSAppSyncApolloExtensions
+@testable import aws_appsync_apollo_extensions
 
-final class AWSAppSyncApolloExtensionsTests: XCTestCase {
+final class aws_appsync_apollo_extensionsTests: XCTestCase {
     func testExample() throws {
         // XCTest Documentation
         // https://developer.apple.com/documentation/xctest
