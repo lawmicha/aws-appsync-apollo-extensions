@@ -7,11 +7,14 @@ public class AppSyncIAMAuthInterceptor: AppSyncInterceptor {
 
     public var id: String = UUID().uuidString
 
-    let signRequest: (URLRequest) async throws -> URLRequest?
-    let getAuthHeader: (URL, Data) async throws -> AppSyncRealTimeRequestAuth.IAM?
+    let region: String
+    let signRequest: (URLRequest, String) async throws -> URLRequest?
+    let getAuthHeader: (URL, Data, String) async throws -> AppSyncRealTimeRequestAuth.IAM?
 
-    public init(signRequest: @escaping (URLRequest) async throws -> URLRequest?,
-                getAuthHeader: @escaping (URL, Data) async throws -> AppSyncRealTimeRequestAuth.IAM?) {
+    public init(region: String,
+                signRequest: @escaping (URLRequest, String) async throws -> URLRequest?,
+                getAuthHeader: @escaping (URL, Data, String) async throws -> AppSyncRealTimeRequestAuth.IAM?) {
+        self.region = region
         self.signRequest = signRequest
         self.getAuthHeader = getAuthHeader
     }
@@ -20,7 +23,9 @@ public class AppSyncIAMAuthInterceptor: AppSyncInterceptor {
 extension AppSyncIAMAuthInterceptor {
     public func interceptConnection(url: URL) async -> URL {
         let connectUrl = appSyncApiEndpoint(url).appendingPathComponent("connect")
-        guard let authHeader = try? await getAuthHeader(connectUrl, Data("{}".utf8)) else {
+        guard let authHeader = try? await getAuthHeader(connectUrl, 
+                                                        Data("{}".utf8),
+                                                        region) else {
             return connectUrl
         }
 
@@ -40,7 +45,8 @@ extension AppSyncIAMAuthInterceptor {
         }
         let authHeader = try? await getAuthHeader(
             appSyncApiEndpoint(url),
-            Data(request.data.utf8))
+            Data(request.data.utf8),
+            region)
         return .start(.init(
             id: request.id,
             data: request.data,
@@ -64,7 +70,7 @@ extension AppSyncIAMAuthInterceptor {
         }
 
         Task {
-            let signedRequest = try await signRequest(urlRequest)
+            let signedRequest = try await signRequest(urlRequest, region)
 
             signedRequest?.allHTTPHeaderFields?.forEach({ header in
                 request.addHeader(name: header.key, value: header.value)
