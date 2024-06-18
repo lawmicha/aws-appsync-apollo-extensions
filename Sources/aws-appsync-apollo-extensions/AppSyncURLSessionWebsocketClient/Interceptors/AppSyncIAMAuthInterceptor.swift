@@ -9,11 +9,11 @@ public class AppSyncIAMAuthInterceptor: AppSyncInterceptor {
 
     let region: String
     let signRequest: (URLRequest, String) async throws -> URLRequest?
-    let getAuthHeader: (URL, Data, String) async throws -> AppSyncRealTimeRequestAuth.IAM?
+    let getAuthHeader: (URL, Data, String) async throws -> (String, String, String, String)?
 
     public init(region: String,
                 signRequest: @escaping (URLRequest, String) async throws -> URLRequest?,
-                getAuthHeader: @escaping (URL, Data, String) async throws -> AppSyncRealTimeRequestAuth.IAM?) {
+                getAuthHeader: @escaping (URL, Data, String) async throws -> (String, String, String, String)?) {
         self.region = region
         self.signRequest = signRequest
         self.getAuthHeader = getAuthHeader
@@ -30,7 +30,10 @@ extension AppSyncIAMAuthInterceptor {
         }
 
         return AppSyncRealTimeRequestAuth.URLQuery(
-            header: .iam(authHeader)
+            header: .iam(.init(host: authHeader.0,
+                               authToken: authHeader.1,
+                               securityToken: authHeader.2,
+                               amzDate: authHeader.3))
         ).withBaseURL(url)
     }
 }
@@ -43,15 +46,21 @@ extension AppSyncIAMAuthInterceptor {
         guard case .start(let request) = event else {
             return event
         }
-        let authHeader = try? await getAuthHeader(
+        guard let authHeader = try? await getAuthHeader(
             appSyncApiEndpoint(url),
             Data(request.data.utf8),
-            region)
+            region) else {
+            return .start(.init(id: request.id,
+                                data: request.data, auth: nil))
+        }
         return .start(.init(
             id: request.id,
             data: request.data,
-            auth: authHeader.map { .iam($0) }
-        ))
+            auth: .iam(.init(host: authHeader.0,
+                             authToken: authHeader.1,
+                             securityToken: authHeader.2,
+                             amzDate: authHeader.3))))
+
     }
 }
 
