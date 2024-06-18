@@ -213,6 +213,7 @@ public class AppSyncWebSocketClient: NSObject, ApolloWebSocket.WebSocketClient {
         let url = self.request.url!
         let decoratedURL = (await self.interceptor?.interceptConnection(url: url)) ?? url
 
+//        let finalRequest = URLRequest(url: decoratedURL)
         request.url = decoratedURL
 
         let urlSession = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
