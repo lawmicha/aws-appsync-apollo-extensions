@@ -1,5 +1,5 @@
 import XCTest
-@testable import aws_appsync_apollo_extensions
+//@testable import aws_appsync_apollo_extensions
 
 final class aws_appsync_apollo_extensionsTests: XCTestCase {
     func testExample() throws {

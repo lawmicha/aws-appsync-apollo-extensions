@@ -1,36 +1,31 @@
-////
-////  AWSIAMAuthInterceptor+Apollo.swift
-////  apollo-test
-////
-////  Created by Law, Michael on 2024-05-27.
-////
+//////
+//////  AWSIAMAuthInterceptor+Apollo.swift
+//////  apollo-test
+//////
+//////  Created by Law, Michael on 2024-05-27.
+//////
 //
 //import Foundation
-//import Amplify
-//import Apollo
-//import ApolloAPI
+////import Apollo
+////import ApolloAPI
+//
 //import ClientRuntime
-//import AWSPluginsCore
+////import AWSPluginsCore
 //import AwsCommonRuntimeKit
 //
-import Foundation
-
-public protocol AppSyncSigV4Signer {
-    func signRequest(_ urlRequest: URLRequest) async throws -> URLRequest?
-
-    func getAuthHeader(_ endpoint: URL,
-                       with payload: Data) async throws -> AppSyncRealTimeRequestAuth.IAM?
-}
+//import Foundation
 //
 //class AmplifyAppSyncSigV4Signer: AppSyncSigV4Signer {
 //
 //    let region: String
 //    let signer: AmplifyAWSSignatureV4Signer
+//
 //    init(region: String, signer: AmplifyAWSSignatureV4Signer = AmplifyAWSSignatureV4Signer()) {
 //        self.region = region
 //        self.signer = signer
 //        CommonRuntimeKit.initialize()
 //    }
+//
 //    func signRequest(_ urlRequest: URLRequest) async throws -> URLRequest? {
 //        let requestBuilder = try createAppSyncSdkHttpRequestBuilder(
 //            urlRequest: urlRequest,
@@ -43,7 +38,8 @@ public protocol AppSyncSigV4Signer {
 //            signingRegion: region,
 //            date: Date()
 //        ) else {
-//            throw APIError.unknown("Unable to sign request", "")
+//            //throw APIError.unknown("Unable to sign request", "")
+//            return nil
 //        }
 //
 //        return setHeaders(from: sdkHttpRequest, to: urlRequest)
@@ -124,10 +120,10 @@ public protocol AppSyncSigV4Signer {
 //                                            body: Data?) throws -> SdkHttpRequestBuilder {
 //
 //        guard let url = urlRequest.url else {
-//            throw APIError.unknown("Could not get url from mutable request", "")
+//            throw "Could not get url from mutable request"
 //        }
 //        guard let host = url.host else {
-//            throw APIError.unknown("Could not get host from mutable request", "")
+//            throw "Could not get host from mutable request"
 //        }
 //        var headers = urlRequest.allHTTPHeaderFields ?? [:]
 //        headers.updateValue(host, forKey: "host")
@@ -150,4 +146,8 @@ public protocol AppSyncSigV4Signer {
 //
 //        return requestBuilder
 //    }
+//}
+//
+//extension String: Error {
+//
 //}

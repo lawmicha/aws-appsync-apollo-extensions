@@ -7,16 +7,20 @@ public class AppSyncIAMAuthInterceptor: AppSyncInterceptor {
 
     public var id: String = UUID().uuidString
 
-    let signer: AppSyncSigV4Signer
-    public init(signer: AppSyncSigV4Signer) {
-        self.signer = signer
+    let signRequest: (URLRequest) async throws -> URLRequest?
+    let getAuthHeader: (URL, Data) async throws -> AppSyncRealTimeRequestAuth.IAM?
+
+    public init(signRequest: @escaping (URLRequest) async throws -> URLRequest?,
+                getAuthHeader: @escaping (URL, Data) async throws -> AppSyncRealTimeRequestAuth.IAM?) {
+        self.signRequest = signRequest
+        self.getAuthHeader = getAuthHeader
     }
 }
 
 extension AppSyncIAMAuthInterceptor {
     public func interceptConnection(url: URL) async -> URL {
         let connectUrl = appSyncApiEndpoint(url).appendingPathComponent("connect")
-        guard let authHeader = try? await signer.getAuthHeader(connectUrl, with: Data("{}".utf8)) else {
+        guard let authHeader = try? await getAuthHeader(connectUrl, Data("{}".utf8)) else {
             return connectUrl
         }
 
@@ -34,9 +38,9 @@ extension AppSyncIAMAuthInterceptor {
         guard case .start(let request) = event else {
             return event
         }
-        let authHeader = try? await signer.getAuthHeader(
+        let authHeader = try? await getAuthHeader(
             appSyncApiEndpoint(url),
-            with: Data(request.data.utf8))
+            Data(request.data.utf8))
         return .start(.init(
             id: request.id,
             data: request.data,
@@ -60,7 +64,7 @@ extension AppSyncIAMAuthInterceptor {
         }
 
         Task {
-            let signedRequest = try await signer.signRequest(urlRequest)
+            let signedRequest = try await signRequest(urlRequest)
 
             signedRequest?.allHTTPHeaderFields?.forEach({ header in
                 request.addHeader(name: header.key, value: header.value)
